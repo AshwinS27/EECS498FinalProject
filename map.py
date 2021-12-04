@@ -18,7 +18,8 @@ class Map:
         pass
 
     def updateFromLidar(self, ):
-
+        pass
+    
     # Resets map
     def clear_map(self):
         self.obstacles.clear()
