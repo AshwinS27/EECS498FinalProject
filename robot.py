@@ -8,11 +8,11 @@ from utils import load_env, execute_trajectory, draw_sphere_marker
 class Robot:
     def __init__(self):
         # Set all movement params
-        self.step_size = 0.5
+        self.step_size = 0.05
         self.rot_step = np.pi/4
 
         # Create map and set map resolution
-        self.resolution = 0.5
+        self.resolution = 0.05
         self.global_map = Map(self.resolution)
 
         # Create lidar and configure
@@ -81,12 +81,22 @@ class Robot:
     ############ Private Member Functions #############
 
     """
+    CALL THIS TO SCAN AREA AND UPDATE MAP WITH NEW OBSTACLE VALUES
     Updates Map through Process:
     1.) Gets Lidar scan from position
     2.) Puts all obstacles seen into maps obstacle dict
     3.) updates variable(self.seen_obstacles) with all points that have new obstacles  
     """
     def updateMap(self):
-        dists = self.lidar.getLidarRaw(self.curr_state, self.obstacles)
-        self.global_map.update
+        # Get lidar Scan
+        obstacle_points = self.lidar.getLidarScan(self.curr_state, self.obstacles)
+
+        # Update global map
+        self.global_map.updateMap(obstacle_points)
+
+        # Get novel obstacle points
+        new_obs_points = self.global_map.getNewPoints()
+
+        #TODO: What to do with the new obstacle points?
+        # Maybe check if they interfere with path that is already planned?
 

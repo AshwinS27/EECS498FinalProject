@@ -10,17 +10,17 @@ class Lidar:
         self.lidar_range = lidar_range
         self.step_size = self.max_step_size/2
         self.z = 0.5
+        self.rot_step = (2 * np.pi)/self.slices
 
     # returns list of distances where object is first detected
     # state is an np array of the robots pose [x, y, theta]
     def getLidarRaw(self, state, obstacles):
-        rot_step = (2*np.pi)/180
         dists = [np.inf for i in range(0, self.slices)]
         start_point = np.asarray([state[0], state[1], self.z])
         # iterate through each slice and get distance to obstacle
         for i in range(0, self.slices):
             # find unit vector where the slice is facing
-            rotation = state[2] + (i * rot_step)
+            rotation = state[2] + (i * self.rot_step)
             direction = np.asarray([1 * np.cos(rotation), 1 * np.sin(rotation), 0]) * (1/(np.sqrt((1 * np.cos(rotation))**2 + (1 * np.sin(rotation))**2)))
 
             curr_point = np.asarray([state[0], state[1], self.z])
@@ -51,13 +51,21 @@ class Lidar:
     def getLidarScan(self, state, obstacles):
         dists = self.getLidarRaw(state, obstacles)
 
+        # data structure to return
+        obstacle_points = []
 
-    # def convertToVisibleGrid(self, state, dists):
-    #     pass
-    #
-    #
-    # def getLidarVisibleGrid(self, state, obstacles):
-    #     dists = self.getLidarRaw(state, obstacles)
-    #     visibleGrid = self.convertToVisibleGrid(state, dists)
-    #     return visibleGrid
+        robot_x = state[0]
+        robot_y = state[1]
+        robot_theta = state[2]
 
+        # loop through all distances
+        for i, distance in enumerate(dists):
+            # check to see if an obstacle was seen
+            if distance == np.inf: # no obstacle seen
+                continue
+
+            # convert from polar to rectangular coordinates
+            theta = robot_theta + (i * self.rot_step)
+            obstacle_points.append([(distance * np.cos(theta)) + robot_x, (distance * np.sin(theta)) + robot_y])
+
+        return obstacle_points
