@@ -19,8 +19,7 @@ def main():
     robot.set_goal_config(goal_config)
 
     # Go to goal state
-    #robot.repeated_astar()
-
+    robot.lidar_test()
 
     # Keep graphics window opened
     wait_if_gui()

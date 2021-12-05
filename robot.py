@@ -4,6 +4,7 @@ from lidar import Lidar
 from pybullet_tools.utils import get_joint_positions, joint_from_name
 from pybullet_tools.pr2_utils import PR2_GROUPS
 from utils import load_env, execute_trajectory, draw_sphere_marker
+from plot_utils import plot_points
 
 class Robot:
     def __init__(self):
@@ -30,6 +31,10 @@ class Robot:
         self.robots = None
         self.base_joints = None
 
+        # Shared Algorithm Variables
+        self.curr_path = []
+        self.curr_path_idx = None
+
 
     ########### Public Member Functions ###########
 
@@ -54,6 +59,47 @@ class Robot:
         self.curr_state = list(self.start_config)
 
 
+    # Returns 1 if end of path is reached or path is empty
+    # Returns 0 for succesfully incrementing along path
+    def move_in_path(self):
+        if len(self.curr_path) == 0:
+            print("Path is Empty")
+            return 1
+        elif self.curr_path_idx == len(self.curr_path):
+            print("End of path reached")
+            return 1
+        else:
+            sub_path = [tuple(self.curr_path[self.curr_path_idx]), tuple(self.curr_path[self.curr_path_idx + 1])]
+            self.curr_path_idx += 1
+            execute_trajectory(self.robots['pr2'], self.base_joints, sub_path, sleep=0.2)
+            self.curr_state = self.curr_path[self.curr_path_idx]
+            return 0
+
+
+    def lidar_test(self):
+        # Straight line trajectory to test Lidar
+        start = self.start_config
+        trans_step = 0.1
+        movements = 1000
+
+        # Create path
+        path = []
+        path.append(list(start))
+        state = list(start)
+        for i in range(0, movements):
+            new_state = np.copy(state)
+            new_state[0] += trans_step
+            path.append(new_state)
+            state = new_state
+        self.curr_path = path
+        self.curr_path_idx = 0
+
+        # keep moving along path
+        while not self.move_in_path():
+            # Get points from map
+            new_points = self.lidar.getLidarScan(self.curr_state, self.obstacles)
+            plot_points(new_points)
+
 
 
     #### For path searching ####
@@ -65,6 +111,17 @@ class Robot:
 
     def lpastar(self):
         pass
+
+
+    ##### For Getting state parameters #########
+    def get_current_path(self):
+        return self.curr_path
+
+    def get_current_path_idx(self):
+        return self.curr_path_idx
+
+    def get_current_state(self):
+        return self.curr_state
 
     #### For setting Parameters ####
     # Setting parameters for the Robot
@@ -90,6 +147,8 @@ class Robot:
     def updateMap(self):
         # Get lidar Scan
         obstacle_points = self.lidar.getLidarScan(self.curr_state, self.obstacles)
+
+        # draw on map
 
         # Update global map
         self.global_map.updateMap(obstacle_points)

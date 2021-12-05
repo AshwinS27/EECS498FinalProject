@@ -4,12 +4,12 @@ import pybullet as p
 from utils import dist
 
 class Lidar:
-    def __init__(self, step_length=0.05, lidar_range=0.5, slices=180):
+    def __init__(self, step_length=0.1, lidar_range=1, slices=45):
         self.slices = slices
         self.max_step_size = np.sqrt(step_length**2 + step_length**2)
         self.lidar_range = lidar_range
         self.step_size = self.max_step_size/2
-        self.z = 0.5
+        self.z = 0.4
         self.rot_step = (2 * np.pi)/self.slices
 
     # returns list of distances where object is first detected
