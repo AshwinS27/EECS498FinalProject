@@ -12,7 +12,7 @@ def main():
 
     # Intialize the Robot
     robot = Robot()
-    robot.load_world('pr2doorway.json')
+    robot.load_world('pr2bigmap.json')
 
    # Set goal configuration
     goal_config = (2.6, -1.3, -np.pi / 2)
