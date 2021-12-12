@@ -4,7 +4,7 @@ import pybullet as p
 from utils import dist
 
 class Lidar:
-    def __init__(self, step_length=0.1, lidar_range=1, slices=45):
+    def __init__(self, step_length=0.1, lidar_range=1, slices=90):
         self.slices = slices
         self.max_step_size = np.sqrt(step_length**2 + step_length**2)
         self.lidar_range = lidar_range

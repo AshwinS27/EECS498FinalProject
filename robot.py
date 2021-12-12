@@ -13,7 +13,7 @@ class Robot:
         self.rot_step = np.pi/4
 
         # Create map and set map resolution
-        self.resolution = 0.05
+        self.resolution = round(np.sqrt((self.step_size**2)/2) + self.step_size/16, 3)
         self.global_map = Map(self.resolution)
 
         # Create lidar and configure
@@ -34,7 +34,6 @@ class Robot:
         # Shared Algorithm Variables
         self.curr_path = []
         self.curr_path_idx = None
-
 
     ########### Public Member Functions ###########
 
@@ -58,7 +57,6 @@ class Robot:
         self.start_config = tuple(get_joint_positions(robots['pr2'], self.base_joints))
         self.curr_state = list(self.start_config)
 
-
     # Returns 1 if end of path is reached or path is empty
     # Returns 0 for succesfully incrementing along path
     def move_in_path(self):
@@ -80,7 +78,7 @@ class Robot:
         # Straight line trajectory to test Lidar
         start = self.start_config
         trans_step = 0.1
-        movements = 1000
+        movements = 500
 
         # Create path
         path = []
@@ -99,7 +97,6 @@ class Robot:
             # Get points from map
             new_points = self.lidar.getLidarScan(self.curr_state, self.obstacles)
             plot_points(new_points)
-
 
 
     #### For path searching ####
@@ -122,18 +119,6 @@ class Robot:
 
     def get_current_state(self):
         return self.curr_state
-
-    #### For setting Parameters ####
-    # Setting parameters for the Robot
-    def set_step_size(self, step_size):
-        self.step_size = step_size
-    def set_rot_step(self, rot_step):
-        self.rot_step = rot_step
-
-    # Setting parameters for the Map
-    def set_resolution(self, resolution):
-        self.resolution = round(resolution, 2)
-        self.global_map.set_resolution(self.resolution)
 
     ############ Private Member Functions #############
 
