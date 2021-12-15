@@ -37,18 +37,17 @@ class Map:
                 self.newObstacles.append(new_point)
             self.obstacles[hash] = True
 
-    # Takes x, y coordinate in continuous space and discretizes based on map resolution
+    # Takes state as [x, y, theta] coordinate in continuous space and discretizes based on map resolution
     # Returns a discretized point
     def roundPointToCell(self, point):
         nearest_x = round(float(point[0])/self.resolution) * self.resolution
         nearest_y = round(float(point[1])/self.resolution) * self.resolution
-        new_point = [nearest_x, nearest_y]
+        new_point = [nearest_x, nearest_y, point[2]]
         return new_point
 
 
     def getNewPoints(self):
         return self.newObstacles
-
 
     # Resets map
     def clear_map(self):

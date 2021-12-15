@@ -9,7 +9,7 @@ class Lidar:
         self.max_step_size = np.sqrt(step_length**2 + step_length**2)
         self.lidar_range = lidar_range
         self.step_size = self.max_step_size/2
-        self.z = 0.4
+        self.z = 0.1
         self.rot_step = (2 * np.pi)/self.slices
 
     # returns list of distances where object is first detected
@@ -69,3 +69,6 @@ class Lidar:
             obstacle_points.append([(distance * np.cos(theta)) + robot_x, (distance * np.sin(theta)) + robot_y])
 
         return obstacle_points
+
+    def getRange(self):
+        return self.lidar_range

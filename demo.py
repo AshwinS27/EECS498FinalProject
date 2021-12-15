@@ -11,15 +11,15 @@ def main():
     connect(use_gui=True)
 
     # Intialize the Robot
-    robot = Robot()
-    robot.load_world('pr2doorway.json')
+    robot = Robot('A*')
+    robot.load_world('pr2bigmap.json')
 
-   # Set goal configuration
-    goal_config = (2.6, -1.3, -np.pi / 2)
-    robot.set_goal_config(goal_config)
+   # Set goal configuration for bigmap
+    bigmap_goal_config = (7, 7, np.pi / 2)
+    robot.set_goal_config(bigmap_goal_config)
 
     # Go to goal state
-    robot.lidar_test()
+    robot.run()
 
     # Keep graphics window opened
     wait_if_gui()

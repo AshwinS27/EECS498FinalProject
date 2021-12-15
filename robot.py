@@ -3,11 +3,17 @@ from map import Map
 from lidar import Lidar
 from pybullet_tools.utils import get_joint_positions, joint_from_name
 from pybullet_tools.pr2_utils import PR2_GROUPS
-from utils import load_env, execute_trajectory, draw_sphere_marker
+from utils import load_env, execute_trajectory, draw_sphere_marker, dist
 from plot_utils import plot_points
+import time
+
+# Importing planners
+from a_star import Astar
+from dstarlite import Dstarlite
+from lpastar import Lpastar
 
 class Robot:
-    def __init__(self):
+    def __init__(self, planner_type='D*'):
         # Set all movement params
         self.step_size = 0.05
         self.rot_step = np.pi/4
@@ -23,6 +29,7 @@ class Robot:
         self.curr_state = None
         self.goal_state = None
         self.start_config = None
+        self.start_state = None
         self.goal_config = None
         self.seen_obstacles = []
 
@@ -31,17 +38,22 @@ class Robot:
         self.robots = None
         self.base_joints = None
 
+        ## Planner variables
+        self.planner_type = planner_type
+        self.planner = None
+        self.determinePlanner()
+
         # Shared Algorithm Variables
-        self.curr_path = []
-        self.curr_path_idx = None
+        self.update_path_threshold = 0.2
+        self.update_ignore_threshold = self.lidar.getRange() * 1.3
+        self.goal_threshold = 0.05
+
+        # Timing variables
+        self.start_time = None
+        self.total_time = None
+
 
     ########### Public Member Functions ###########
-
-    ###### For setting of start and goal positions
-    # Sets goal configuration from tuple
-    def set_goal_config(self, goal_config):
-        self.goal_config = goal_config
-        self.goal_state = list(goal_config)
 
     # Loads world and sets parameters
     def load_world(self, world_name):
@@ -55,24 +67,22 @@ class Robot:
 
         # set start config
         self.start_config = tuple(get_joint_positions(robots['pr2'], self.base_joints))
-        self.curr_state = list(self.start_config)
+        self.start_state = list(self.start_config)
 
     # Returns 1 if end of path is reached or path is empty
-    # Returns 0 for succesfully incrementing along path
-    def move_in_path(self):
-        if len(self.curr_path) == 0:
+    # Returns 0 for successfully incrementing along path
+    def move_in_path(self, path, path_idx):
+        if len(path) == 0:
             print("Path is Empty")
             return 1
-        elif self.curr_path_idx == len(self.curr_path):
+        elif path_idx == len(path):
             print("End of path reached")
             return 1
         else:
-            sub_path = [tuple(self.curr_path[self.curr_path_idx]), tuple(self.curr_path[self.curr_path_idx + 1])]
-            self.curr_path_idx += 1
+            sub_path = [tuple(path[path_idx]), tuple(path[path_idx + 1])]
             execute_trajectory(self.robots['pr2'], self.base_joints, sub_path, sleep=0.2)
-            self.curr_state = self.curr_path[self.curr_path_idx]
+            self.curr_state = path[path_idx]
             return 0
-
 
     def lidar_test(self):
         # Straight line trajectory to test Lidar
@@ -98,19 +108,41 @@ class Robot:
             new_points = self.lidar.getLidarScan(self.curr_state, self.obstacles)
             plot_points(new_points)
 
+    def moveToGoalInst(self):
+        start = self.start_config
+        path = []
+        path.append(list(start))
+        path.append(self.goal_state)
+        self.curr_path = path
+        self.curr_path_idx = 0
+
+        self.move_in_path()
+        return 0
 
     #### For path searching ####
-    def repeated_astar(self):
-        pass
 
-    def dstar_lite(self):
-        pass
+    def determinePlanner(self):
+        if self.planner_type == 'A*':
+            self.planner = Astar(self.global_map, self)
+        elif self.planner_type == 'LPA*':
+            self.planner = Lpastar(self.global_map, self)
+        elif self.planner_type == 'D*':
+            self.planner = Dstarlite(self.global_map, self)
 
-    def lpastar(self):
-        pass
+    # checks whether state is the goal
+    def is_goal_state(self, state):
+        if dist(state, self.goal_state) <= self.goal_threshold:
+            return True
+        return False
 
+    # Will use whatever planner is currently set while moving towards goal
+    def run(self):
+        self.start_time = time.time()
+        self.planner.run()
+        self.total_time = time.time() - self.start_time
+        print("Total time taken: " + str(self.total_time))
 
-    ##### For Getting state parameters #########
+    ##### For Getting parameters #########
     def get_current_path(self):
         return self.curr_path
 
@@ -120,20 +152,39 @@ class Robot:
     def get_current_state(self):
         return self.curr_state
 
+    def get_goal_state(self):
+        return self.goal_state
+
+    def get_trans_step_size(self):
+        return self.step_size
+
+    def get_rot_step_size(self):
+        return self.rot_step
+
+    def get_start_state(self):
+        return self.start_state
+
+    ##### For Setting parameters
+    # Sets goal configuration from tuple
+    def set_goal_config(self, goal_config):
+        self.goal_config = goal_config
+        self.goal_state = list(goal_config)
+        self.planner.updateGoal()
+
+
+
     ############ Private Member Functions #############
 
     """
     CALL THIS TO SCAN AREA AND UPDATE MAP WITH NEW OBSTACLE VALUES
     Updates Map through Process:
     1.) Gets Lidar scan from position
-    2.) Puts all obstacles seen into maps obstacle dict
-    3.) updates variable(self.seen_obstacles) with all points that have new obstacles  
+    2.) Puts obstacles into map representation
+    RETURNS list of new obstacle points  
     """
-    def updateMap(self):
+    def update_map(self, curr_state):
         # Get lidar Scan
-        obstacle_points = self.lidar.getLidarScan(self.curr_state, self.obstacles)
-
-        # draw on map
+        obstacle_points = self.lidar.getLidarScan(curr_state, self.obstacles)
 
         # Update global map
         self.global_map.updateMap(obstacle_points)
@@ -141,6 +192,20 @@ class Robot:
         # Get novel obstacle points
         new_obs_points = self.global_map.getNewPoints()
 
-        #TODO: What to do with the new obstacle points?
-        # Maybe check if they interfere with path that is already planned?
+        return new_obs_points
 
+    # Given a list of obstacle points,
+    def does_conflict_with_path(self, obs_points, path, path_idx=0):
+        # Check if any of the new obstacle points come within a tolerance of the rest of the path
+        # Replan if necessary
+        for i in range(path_idx, len(path)):
+            for obs_point in obs_points:
+
+                # Check whether a new obstacle point will interfere with the current path
+                # Check whether path is far away from the obstacle point to avoid redundant checks
+                if dist(obs_point, [path[i][0], path[i][1]]) < self.update_path_threshold:
+                    print("Obstacle in way of path")
+                    return True
+                elif dist(obs_point, [path[i][0], path[i][1]]) >= self.update_ignore_threshold:
+                    print("Updated map successfully")
+                    return False
