@@ -15,8 +15,8 @@ from lpastar import Lpastar
 class Robot:
     def __init__(self, planner_type='D*'):
         # Set all movement params
-        self.step_size = 0.05
-        self.rot_step = np.pi/4
+        self.step_size = 0.5
+        self.rot_step = np.pi/2
 
         # Create map and set map resolution
         self.resolution = round(np.sqrt((self.step_size**2)/2) + self.step_size/16, 3)
@@ -46,7 +46,7 @@ class Robot:
         # Shared Algorithm Variables
         self.update_path_threshold = 0.2
         self.update_ignore_threshold = self.lidar.getRange() * 1.3
-        self.goal_threshold = 0.05
+        self.goal_threshold = 0.5
 
         # Timing variables
         self.start_time = None
@@ -68,6 +68,8 @@ class Robot:
         # set start config
         self.start_config = tuple(get_joint_positions(robots['pr2'], self.base_joints))
         self.start_state = list(self.start_config)
+
+        self.planner.set_start_state(self.start_state)
 
     # Returns 1 if end of path is reached or path is empty
     # Returns 0 for successfully incrementing along path

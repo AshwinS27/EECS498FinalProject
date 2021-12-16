@@ -1,5 +1,4 @@
 import numpy as np
-from robot import Robot
 from map import Map
 from queue import PriorityQueue
 from utils import dist
@@ -46,8 +45,8 @@ class Astar:
         self.global_map = global_map
         self.myrobot = robot
         self.goal_state = None
-        self.start_state = self.myrobot.get_start_state()
-        self.curr_state = self.myrobot.get_start_state()
+        self.start_state = None
+        self.curr_state = None
 
         #Global Astar parameters
         self.trans_step_size = self.myrobot.get_trans_step_size()
@@ -90,7 +89,7 @@ class Astar:
             # check if goal state is reached
             if self.myrobot.is_goal_state(self.curr_state):
                 break
-
+        print("Total distance travelled: " + str(self.total_distance))
         return 0
 
     def astar(self, start_state):
@@ -103,7 +102,7 @@ class Astar:
         unique_id = 0
 
         # Create starting node
-        start_node = Node(start_state, unique_id, -1, 0, 0)
+        start_node = Node(start_state, unique_id, -1, dist(start_state, self.goal_state), 0)
         unique_id += 1
 
         # Insert starting node to frontier, openSet, and nodeSet
@@ -224,3 +223,7 @@ class Astar:
 
     def updateGoal(self):
         self.goal_state = self.myrobot.get_goal_state()
+
+    def set_start_state(self, state):
+        self.start_state = state
+        self.curr_state = state

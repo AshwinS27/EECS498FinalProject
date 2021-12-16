@@ -16,8 +16,8 @@ class Map:
     ############## Public member functions ##################
     # takes in point and finds cell that contains the point -- returns if there is obstacle there or not
     def isObstacle(self, point):
-        hash = self.hash_coord(point)
-        if self.obstacles.get(hash) is None:
+        #hash = self.hash_coord(point)
+        if self.obstacles.get((point[0], point[1])) is None:
             return False
         else:
             return True
@@ -31,18 +31,22 @@ class Map:
             #Convert the continuous point to a discretized cell in map
             new_point = self.roundPointToCell(point)
             # Hash the point
-            hash = self.hash_coord(new_point)
+            #hash = self.hash_coord(new_point)
 
-            if self.obstacles.get(hash) is None:
+            if self.obstacles.get((new_point[0], new_point[1])) is None:
                 self.newObstacles.append(new_point)
-            self.obstacles[hash] = True
+            self.obstacles[(new_point[0], new_point[1])] = True
 
     # Takes state as [x, y, theta] coordinate in continuous space and discretizes based on map resolution
     # Returns a discretized point
     def roundPointToCell(self, point):
         nearest_x = round(float(point[0])/self.resolution) * self.resolution
         nearest_y = round(float(point[1])/self.resolution) * self.resolution
-        new_point = [nearest_x, nearest_y, point[2]]
+
+        if len(point) == 3:
+            return [nearest_x, nearest_y, point[2]]
+
+        new_point = [nearest_x, nearest_y]
         return new_point
 
 
