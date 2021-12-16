@@ -1,12 +1,15 @@
 import numpy as np
-
+from queue import Queue
 
 """
  This file is a map object that will hold our complete map and update it based on lidar scans
  The cells are held within a map to allow for dynamic expansion of map
 """
 class Map:
-    def __init__(self, resolution):
+    def __init__(self, resolution, robot):
+        self.myrobot = robot
+        self.trans_step_size = self.myrobot.get_trans_step_size()
+        self.rot_step_size = self.myrobot.get_rot_step_size()
         self.resolution = resolution
         self.res_place = 1000
         self.max_range = 10
@@ -17,7 +20,85 @@ class Map:
     # takes in point and finds cell that contains the point -- returns if there is obstacle there or not
     def isObstacle(self, point):
         #hash = self.hash_coord(point)
+
         if self.obstacles.get((point[0], point[1])) is None:
+            # Check area around for containing obstacles -- creates a buffer
+            # breadth first search with a depth of 2
+            bq = Queue()
+            exploredSet = {}
+
+            # put first element in queue -- (point, depth)
+            bq.put(([point[0], point[1]], 0))
+
+            while not bq.empty():
+                top_pt = bq.get()
+
+                # Add children
+                if top_pt[1] < 3:
+                    r = [top_pt[0][0] + self.resolution, top_pt[0][1]]
+                    if exploredSet.get(tuple(r)) is None:
+                        bq.put((r, top_pt[1] + 1))
+                        exploredSet[tuple(r)] = True
+                    l = [top_pt[0][0] - self.resolution, top_pt[0][1]]
+                    if exploredSet.get(tuple(l)) is None:
+                        bq.put((l, top_pt[1] + 1))
+                        exploredSet[tuple(l)] = True
+                    t = [top_pt[0][0], top_pt[0][1] + self.resolution]
+                    if exploredSet.get(tuple(t)) is None:
+                        bq.put((t, top_pt[1] + 1))
+                        exploredSet[tuple(t)] = True
+                    b = [top_pt[0][0], top_pt[0][1] - self.resolution]
+                    if exploredSet.get(tuple(b)) is None:
+                        bq.put((b, top_pt[1] + 1))
+                        exploredSet[tuple(b)] = True
+                    tr = [top_pt[0][0] + self.resolution, top_pt[0][1] + self.resolution]
+                    if exploredSet.get(tuple(tr)) is None:
+                        bq.put((tr, top_pt[1] + 1))
+                        exploredSet[tuple(tr)] = True
+                    bl = [top_pt[0][0] - self.resolution, top_pt[0][1] - self.resolution]
+                    if exploredSet.get(tuple(bl)) is None:
+                        bq.put((bl, top_pt[1] + 1))
+                        exploredSet[tuple(bl)] = True
+                    br = [top_pt[0][0] + self.resolution, top_pt[0][1] - self.resolution]
+                    if exploredSet.get(tuple(bl)) is None:
+                        bq.put((br, top_pt[1] + 1))
+                        exploredSet[tuple(br)] = True
+                    tl = [top_pt[0][0] - self.resolution, top_pt[0][1] + self.resolution]
+                    if exploredSet.get(tuple(tl)) is None:
+                        bq.put((tl, top_pt[1] + 1))
+                        exploredSet[tuple(tl)] = True
+
+                # check if current point is an obstacle
+                if self.obstacles.get(tuple(top_pt[0])) is not None:
+                    return True
+
+            # # check all 4 neighboring points plus extended for being an obstacle
+            # for i in range(1, 3):
+            #     right_point = self.roundPointToCell([point[0] + i*self.resolution, point[1]])
+            #     left_point = self.roundPointToCell([point[0] - i*self.resolution, point[1]])
+            #     top_point = self.roundPointToCell([point[0], point[1] + i*self.resolution])
+            #     bot_point = self.roundPointToCell([point[0], point[1] - i*self.resolution])
+            #
+            #     if self.obstacles.get(tuple(right_point)) is not None:
+            #         return True
+            #     elif self.obstacles.get(tuple(left_point)) is not None:
+            #         return True
+            #     elif self.obstacles.get(tuple(top_point)) is not None:
+            #         return True
+            #     elif self.obstacles.get(tuple(bot_point)) is not None:
+            #         return True
+            #
+            # # check the 4 diagonals
+            # for i in range(1, 3):
+            #     if self.obstacles.get((point[0] + i*self.resolution, point[1] + i*self.resolution)) is not None:
+            #         return True
+            #     elif self.obstacles.get((point[0] - i*self.resolution, point[1] - i*self.resolution)) is not None:
+            #         return True
+            #     elif self.obstacles.get((point[0] + i*self.resolution, point[1] - i*self.resolution)) is not None:
+            #         return True
+            #     elif self.obstacles.get((point[0] - i*self.resolution, point[1] + i*self.resolution)) is not None:
+            #         return True
+
             return False
         else:
             return True

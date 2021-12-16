@@ -2,6 +2,7 @@ import numpy as np
 from map import Map
 from queue import PriorityQueue
 from utils import dist
+from plot_utils import plot_points, destroy_points
 
 class Node:
     def __init__(self, state, id_in, parent_id_in, h_in, g_in):
@@ -55,30 +56,44 @@ class Astar:
         # Global metrics
         self.total_distance = 0
 
-
-
+        # Debug tracker
+        self.debug = False
 
 
     # starts repeated astar
     def run(self):
+        # Holding visuals for the demos and debugging
+        obstacle_marker_ids = []
+        path_marker_ids = []
+
+
         # Start by getting first view of map
-        self.myrobot.update_map(self.curr_state) # We dont care about new obstacle points here
+        new_obs_points = self.myrobot.update_map(self.curr_state) # We dont care about new obstacle points here
+        if self.debug:
+            obstacle_marker_ids.extend(plot_points(new_obs_points))
 
         # Run astar to get first initial path on the map
         curr_path = self.astar(self.curr_state)
         curr_path_idx = 0
+        if self.debug:
+            path_marker_ids = plot_points(curr_path, color=(1, 1, 1, 1))
         # move along path until either:
         # 1.) The path is obstructed by an obstacle -> then replan
         # 2.) The goal is reached -> end of journey
         while 1:
             # update the map
             new_obs_points = self.myrobot.update_map(self.curr_state)
+            if self.debug:
+                obstacle_marker_ids.extend(plot_points(new_obs_points))
 
             # check for obstacles obstructing path
             if self.myrobot.does_conflict_with_path(new_obs_points, curr_path, curr_path_idx):
                 # if obstacle is in path then replan from current state
                 curr_path = self.astar(curr_path[curr_path_idx])
                 curr_path_idx = 0
+                if self.debug:
+                    destroy_points(path_marker_ids)
+                    path_marker_ids = plot_points(curr_path, color=(1, 1, 1, 1))
 
             # move in path
             self.myrobot.move_in_path(curr_path, curr_path_idx)
@@ -171,8 +186,7 @@ class Astar:
             new_state6[2] -= self.rot_step_size
             if new_state6[2] < -np.pi:
                 new_state6[2] = (np.pi - (np.abs(new_state6[2] - np.pi)))
-            new_node6 = Node(new_state6, unique_id, curr_node.getId(), dist(new_state6, self.goal_state),
-                             curr_node.getG() + dist(curr_state, new_state6))
+            new_node6 = Node(new_state6, unique_id, curr_node.getId(), dist(new_state6, self.goal_state), curr_node.getG() + dist(curr_state, new_state6))
             nodeSet[unique_id] = new_node6
             neighbors.append(new_node6)
             unique_id += 1
@@ -187,6 +201,7 @@ class Astar:
 
             # Check neighbors for being obstacles
             for neighbor in neighbors:
+                pass
                 if self.global_map.isObstacle(neighbor.getState()):
                     neighbors.remove(neighbor)
 
@@ -227,3 +242,7 @@ class Astar:
     def set_start_state(self, state):
         self.start_state = state
         self.curr_state = state
+
+    def set_debug(self, debug):
+        self.debug = debug
+

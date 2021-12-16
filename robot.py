@@ -19,8 +19,8 @@ class Robot:
         self.rot_step = np.pi/2
 
         # Create map and set map resolution
-        self.resolution = round(np.sqrt((self.step_size**2)/2) + self.step_size/16, 3)
-        self.global_map = Map(self.resolution)
+        self.resolution = round(np.sqrt((self.step_size**2)/2), 3)
+        self.global_map = Map(self.resolution, self)
 
         # Create lidar and configure
         self.lidar = Lidar()
@@ -44,13 +44,16 @@ class Robot:
         self.determinePlanner()
 
         # Shared Algorithm Variables
-        self.update_path_threshold = 0.2
+        self.update_path_threshold = self.step_size * 2
         self.update_ignore_threshold = self.lidar.getRange() * 1.3
         self.goal_threshold = 0.5
 
         # Timing variables
         self.start_time = None
         self.total_time = None
+
+        # Debug tracker
+        self.debug = False
 
 
     ########### Public Member Functions ###########
@@ -138,11 +141,14 @@ class Robot:
         return False
 
     # Will use whatever planner is currently set while moving towards goal
-    def run(self):
+    def run(self, debug=False):
+        if debug:
+            self.debug = True
+            self.planner.set_debug(self.debug)
         self.start_time = time.time()
         self.planner.run()
         self.total_time = time.time() - self.start_time
-        print("Total time taken: " + str(self.total_time))
+        #print("Total time taken: " + str(self.total_time))
 
     ##### For Getting parameters #########
     def get_current_path(self):
@@ -165,6 +171,15 @@ class Robot:
 
     def get_start_state(self):
         return self.start_state
+
+    def get_trans_step_size(self):
+        return self.step_size
+
+    def get_rot_step_size(self):
+        return self.rot_step
+
+    def get_runtime(self):
+        return self.total_time
 
     ##### For Setting parameters
     # Sets goal configuration from tuple

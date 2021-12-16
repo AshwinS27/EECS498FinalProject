@@ -12,14 +12,17 @@ def main():
 
     # Intialize the Robot
     robot = Robot('A*')
-    robot.load_world('pr2bigmap.json')
+    robot.load_world('pr2doorway.json')
 
    # Set goal configuration for bigmap
-    bigmap_goal_config = (7, 7, np.pi / 2)
-    robot.set_goal_config(bigmap_goal_config)
+    #bigmap_goal_config = (7, 7, np.pi / 2)
+    doorway_goal_config = (1.8329999999999997, -1.5, np.pi)
+    robot.set_goal_config(doorway_goal_config)
 
     # Go to goal state
-    robot.run()
+    robot.run(debug=False)
+    repeated_astar_time_taken = robot.get_runtime()
+    print("Repeated A* time taken: " + str(repeated_astar_time_taken))
 
     # Keep graphics window opened
     wait_if_gui()

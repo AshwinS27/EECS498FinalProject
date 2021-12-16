@@ -25,14 +25,14 @@ def execute_trajectory(robot, joints, path, sleep=None):
     if path is None:
         print('Path is empty')
         return
-    print('Executing trajectory')
+    print('Moving forward')
     for bq in path:
         set_joint_positions(robot, joints, bq)
         if sleep is None:
             wait_if_gui('Continue?')
         else:
             wait_for_duration(sleep)
-    print('Finished')
+    #print('Finished')
 
 def draw_sphere_marker(position, radius, color):
    vs_id = p.createVisualShape(p.GEOM_SPHERE, radius=radius, rgbaColor=color)
