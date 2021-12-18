@@ -46,7 +46,7 @@ class Robot:
         # Shared Algorithm Variables
         self.update_path_threshold = self.step_size * 2
         self.update_ignore_threshold = self.lidar.getRange() * 1.3
-        self.goal_threshold = 0.5
+        self.goal_threshold = 0.2
 
         # Timing variables
         self.start_time = None
@@ -180,6 +180,9 @@ class Robot:
 
     def get_runtime(self):
         return self.total_time
+
+    def get_total_distance(self):
+        return self.planner.get_total_distance()
 
     ##### For Setting parameters
     # Sets goal configuration from tuple

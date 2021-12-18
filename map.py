@@ -60,7 +60,7 @@ class Map:
                         bq.put((bl, top_pt[1] + 1))
                         exploredSet[tuple(bl)] = True
                     br = [top_pt[0][0] + self.resolution, top_pt[0][1] - self.resolution]
-                    if exploredSet.get(tuple(bl)) is None:
+                    if exploredSet.get(tuple(br)) is None:
                         bq.put((br, top_pt[1] + 1))
                         exploredSet[tuple(br)] = True
                     tl = [top_pt[0][0] - self.resolution, top_pt[0][1] + self.resolution]

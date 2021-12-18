@@ -76,7 +76,7 @@ class Astar:
         curr_path = self.astar(self.curr_state)
         curr_path_idx = 0
         if self.debug:
-            path_marker_ids = plot_points(curr_path, color=(1, 1, 1, 1))
+            path_marker_ids = plot_points(curr_path, color=(0, 1, 0, 1))
         # move along path until either:
         # 1.) The path is obstructed by an obstacle -> then replan
         # 2.) The goal is reached -> end of journey
@@ -89,11 +89,13 @@ class Astar:
             # check for obstacles obstructing path
             if self.myrobot.does_conflict_with_path(new_obs_points, curr_path, curr_path_idx):
                 # if obstacle is in path then replan from current state
+                if self.debug:
+                    destroy_points(path_marker_ids)
+
                 curr_path = self.astar(curr_path[curr_path_idx])
                 curr_path_idx = 0
                 if self.debug:
-                    destroy_points(path_marker_ids)
-                    path_marker_ids = plot_points(curr_path, color=(1, 1, 1, 1))
+                    path_marker_ids = plot_points(curr_path, color=(0, 1, 0, 1))
 
             # move in path
             self.myrobot.move_in_path(curr_path, curr_path_idx)
@@ -226,6 +228,7 @@ class Astar:
 
         # if this point is reached, then no solution was found
         print("No solution found")
+        return []
 
 
     def backtrack(self, final_node, nodeSet):
@@ -245,4 +248,7 @@ class Astar:
 
     def set_debug(self, debug):
         self.debug = debug
+
+    def get_total_distance(self):
+        return self.total_distance
 
