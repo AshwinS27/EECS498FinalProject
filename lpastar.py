@@ -4,7 +4,6 @@ from queue import PriorityQueue
 from utils import dist
 from plot_utils import plot_points, destroy_points
 
-
 class Node:
     def __init__(self, state, id_in, parent_id_in, h_in, g_in):
         self.x = state[0]
@@ -40,8 +39,7 @@ class Node:
     def getG(self):
         return self.g
 
-
-class Astar:
+class Lpastar:
     def __init__(self, global_map, robot):
 
         # External Parameters
@@ -51,7 +49,7 @@ class Astar:
         self.start_state = None
         self.curr_state = None
 
-        # Global Astar parameters
+        # Global lpastar parameters
         self.trans_step_size = self.myrobot.get_trans_step_size()
         self.rot_step_size = self.myrobot.get_rot_step_size()
 
@@ -60,9 +58,7 @@ class Astar:
 
         # Debug tracker
         self.debug = False
-
-    # starts repeated astar
-
+    
     def run(self):
         # Holding visuals for the demos and debugging
         obstacle_marker_ids = []
@@ -75,7 +71,7 @@ class Astar:
             obstacle_marker_ids.extend(plot_points(new_obs_points))
 
         # Run astar to get first initial path on the map
-        curr_path = self.astar(self.curr_state)
+        curr_path = self.lpastar(self.curr_state)
         curr_path_idx = 0
         if self.debug:
             path_marker_ids = plot_points(curr_path, color=(1, 1, 1, 1))
@@ -91,7 +87,7 @@ class Astar:
             # check for obstacles obstructing path
             if self.myrobot.does_conflict_with_path(new_obs_points, curr_path, curr_path_idx):
                 # if obstacle is in path then replan from current state
-                curr_path = self.astar(curr_path[curr_path_idx])
+                curr_path = self.lpastar(curr_path[curr_path_idx])
                 curr_path_idx = 0
                 if self.debug:
                     destroy_points(path_marker_ids)
@@ -112,7 +108,7 @@ class Astar:
         print("Total distance travelled: " + str(self.total_distance))
         return 0
 
-    def astar(self, start_state):
+    def lpastar(self, start_state):
         # local Astar parameters
         frontier = PriorityQueue()
         openSet = {}
@@ -256,129 +252,3 @@ class Astar:
 
     def set_debug(self, debug):
         self.debug = debug
-
-
-def lpa_star():
-    init()
-    while(True):
-        computeShortPath()
-        while(not costChanges()):
-            pass
-            # HERE WE are waiting for changes in edge cost
-        edgeList = getEdgeList()
-        for edge in edgeList:
-            edge.setCost(newCost(edge))
-            updateNode(edge.endNode)
-    return
-
-# In all functions,
-# h(start,s) = heuristic of goal distance to s
-# g(s) = distance to come (like g in a star)
-
-
-def calculateKey(s):
-    # return min of
-    # g(s), rhs(s) +
-    #h(start,s) + k,
-    # also return min of g(s), rhs(s)
-
-    return
-
-
-def init():
-    # Make priority q U
-    kM = 0
-    # For all successors of current Node
-    queue = PriorityQueue
-    for node in Nodes:
-        node.g = INFINITY
-        node.rhs = INFINITY
-    start.rhs = 0
-    queue.push(start, calculateKey(start))
-
-
-def computeShortestPath():
-    while ((queue.getTopKey() < calculateKey(goal)) or (goal.rhs != goal.g)):
-        node = queue.pop()
-        if (node.g > node.rhs):
-            node.g = node.rhs
-            for successor in node.successor:
-                updateNode(successor)
-        else:
-            node.g = INFINITY
-            updateNode(node)
-            for successor in node.successor:
-                updateNode(successor)
-
-
-def calculateKey(node):
-    return {min(node.g, node.rhs) + node.getHeuristic(goal), min(node.g, node.rhs)}
-
-#     node = queue.pop();
-#     if (node.g > node.rhs) {
-#       node.g = node.rhs;
-#       for (successor : node.getSuccessors())
-#         updateNode(successor);
-#     } else {
-#       node.g = INFINITY;
-#       updateNode(node);
-#       for (successor : node.getSuccessors())
-#         updateNode(successor);
-
-# void main() {
-#   initialize();
-#   while (true) {
-#     computeShortestPath();
-#     while (!hasCostChanges())
-#       sleep;
-#     for (edge : getChangedEdges()) {
-#         edge.setCost(getNewCost(edge));
-#         updateNode(edge.endNode);
-#     }
-#   }
-# }
-
-# void initialize() {
-#   queue = new PriorityQueue();
-#   for (node : getAllNodes()) {
-#     node.g = INFINITY;
-#     node.rhs = INFINITY;
-#   }
-#   start.rhs = 0;
-#   queue.insert(start, calculateKey(start));
-# }
-
-# /** Expands the nodes in the priority queue. */
-# void computeShortestPath() {
-#   while ((queue.getTopKey() < calculateKey(goal)) || (goal.rhs != goal.g)) {
-#     node = queue.pop();
-#     if (node.g > node.rhs) {
-#       node.g = node.rhs;
-#       for (successor : node.getSuccessors())
-#         updateNode(successor);
-#     } else {
-#       node.g = INFINITY;
-#       updateNode(node);
-#       for (successor : node.getSuccessors())
-#         updateNode(successor);
-#     }
-#   }
-# }
-
-# /** Recalculates rhs for a node and removes it from the queue.
-#  * If the node has become locally inconsistent, it is (re-)inserted into the queue with its new key. */
-# void updateNode(node) {
-#   if (node != start) {
-#     node.rhs = INFINITY;
-#     for (predecessor: node.getPredecessors())
-#       node.rhs = min(node.rhs, predecessor.g + predecessor.getCostTo(node));
-#     if (queue.contains(node))
-#       queue.remove(node);
-#     if (node.g != node.rhs)
-#       queue.insert(node, calculateKey(node));
-#   }
-# }
-
-# int[] calculateKey(node) {
-#   return {min(node.g, node.rhs) + node.getHeuristic(goal), min(node.g, node.rhs)};
-# }
