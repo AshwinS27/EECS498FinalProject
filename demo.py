@@ -11,7 +11,7 @@ def main():
     connect(use_gui=True)
 
     # Intialize the Robot
-    planner_type = 'A*'
+    planner_type = 'D*'
     robot = Robot(planner_type)
     robot.load_world('pr2doorway.json')
 
@@ -22,7 +22,7 @@ def main():
     robot.set_goal_config(doorway_goal_config)
 
     # Go to goal state
-    robot.run(debug=False)
+    robot.run(debug=True)
     repeated_astar_time_taken = robot.get_runtime()
     print(planner_type + " time taken: " + str(repeated_astar_time_taken))
 

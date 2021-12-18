@@ -29,12 +29,13 @@ class Map:
 
             # put first element in queue -- (point, depth)
             bq.put(([point[0], point[1]], 0))
+            exploredSet[tuple([point[0], point[1]])] = True
 
             while not bq.empty():
                 top_pt = bq.get()
 
                 # Add children
-                if top_pt[1] < 3:
+                if top_pt[1] < 2:
                     r = [top_pt[0][0] + self.resolution, top_pt[0][1]]
                     if exploredSet.get(tuple(r)) is None:
                         bq.put((r, top_pt[1] + 1))
@@ -71,33 +72,6 @@ class Map:
                 # check if current point is an obstacle
                 if self.obstacles.get(tuple(top_pt[0])) is not None:
                     return True
-
-            # # check all 4 neighboring points plus extended for being an obstacle
-            # for i in range(1, 3):
-            #     right_point = self.roundPointToCell([point[0] + i*self.resolution, point[1]])
-            #     left_point = self.roundPointToCell([point[0] - i*self.resolution, point[1]])
-            #     top_point = self.roundPointToCell([point[0], point[1] + i*self.resolution])
-            #     bot_point = self.roundPointToCell([point[0], point[1] - i*self.resolution])
-            #
-            #     if self.obstacles.get(tuple(right_point)) is not None:
-            #         return True
-            #     elif self.obstacles.get(tuple(left_point)) is not None:
-            #         return True
-            #     elif self.obstacles.get(tuple(top_point)) is not None:
-            #         return True
-            #     elif self.obstacles.get(tuple(bot_point)) is not None:
-            #         return True
-            #
-            # # check the 4 diagonals
-            # for i in range(1, 3):
-            #     if self.obstacles.get((point[0] + i*self.resolution, point[1] + i*self.resolution)) is not None:
-            #         return True
-            #     elif self.obstacles.get((point[0] - i*self.resolution, point[1] - i*self.resolution)) is not None:
-            #         return True
-            #     elif self.obstacles.get((point[0] + i*self.resolution, point[1] - i*self.resolution)) is not None:
-            #         return True
-            #     elif self.obstacles.get((point[0] - i*self.resolution, point[1] + i*self.resolution)) is not None:
-            #         return True
 
             return False
         else:

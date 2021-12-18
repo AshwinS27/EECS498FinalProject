@@ -15,7 +15,7 @@ from lpastar import Lpastar
 class Robot:
     def __init__(self, planner_type='D*'):
         # Set all movement params
-        self.step_size = 0.2
+        self.step_size = 0.4
         self.rot_step = np.pi/2
 
         # Create map and set map resolution
