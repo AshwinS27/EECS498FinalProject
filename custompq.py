@@ -16,14 +16,14 @@ class CustomPQ(object):
 
 	# for inserting an element in the queue
 	def put(self, data):
-		heapq.heappush(self.queue,data)
+		heapq.heappush(self.queue, data)
 
 	# for popping an element based on Priority
 	def pop(self):
 		heapq.heappop(self.queue)
 	
 	def get(self):
-		return self.queue[0]
+		return heapq.heappop(self.queue)
 
 	def qsize(self):
 		return len(self.queue)

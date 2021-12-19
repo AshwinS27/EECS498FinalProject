@@ -115,7 +115,7 @@ class Dstarlite:
     def set_start_state(self, state):
         self.start_state = state
         #global start_node
-        globals()['start_node'] = Node(self.start_state, self.unique_id, None, 0, 0)
+        globals()['start_node'] = Node(self.start_state, self.unique_id, None, np.inf, np.inf)
         self.openSet[tuple(self.start_state)] = self.unique_id
         self.nodeSet[self.unique_id] = globals()['start_node']
         self.unique_id += 1
@@ -138,6 +138,7 @@ class Dstarlite:
         path_marker_ids = []
         self.pq.put(self.goal_node)
 
+        globals()['start_node'].calculate_key()
         self.compute_shortest_path()
         while not self.is_goal(globals()['start_node']):
             if globals()['start_node'].g == np.inf:
@@ -235,6 +236,7 @@ class Dstarlite:
             key_old = [self.pq.queue[0].k1, self.pq.queue[0].k2]
             u = self.pq.get()
             if self.compare_keys(key_old, u.calculate_key()):
+                u.calculate_key()
                 self.pq.put(u)
             elif u.get_g() > u.get_rhs():
                 u.g = u.get_rhs()
@@ -258,12 +260,15 @@ class Dstarlite:
             node.rhs = rhs_min
 
         # check to see if node is contained within priority queue and remove if it is
-        
-        for i in range(0, self.pq.qsize()):
+        i = 0
+        while i < self.pq.qsize():
             if self.pq.queue[i].get_id() == node.get_id():
                 self.pq.queue.remove(node)
+                i -= 1
+            i += 1
 
         if node.get_g() != node.get_rhs():
+            node.calculate_key()
             self.pq.put(node)
 
     def generate_and_add_successors(self, node, pred=False):
@@ -331,7 +336,7 @@ class Dstarlite:
                 if not node.get_id() in self.nodeSet[self.openSet[tuple(new_state2)]].predecessors:
                     # exists so lets just add as predecessor
                     node_that_exists = self.nodeSet[self.openSet[tuple(new_state2)]]
-                    if pred:
+                    if not pred:
                         node.add_to_pred(node_that_exists.get_id())
                         node_that_exists.add_to_succ(node.get_id())
                     else:
