@@ -3,6 +3,7 @@ from map import Map
 from utils import dist
 from plot_utils import plot_points, destroy_points
 from queue import PriorityQueue, Queue
+from custompq import CustomPQ
 
 km = 0
 start_node = None
@@ -32,14 +33,14 @@ class Node:
         return [self.k1, self.k2]
 
     # Returns true if self is lesser priority than other
-    def __gt__(self, other):
+    def __lt__(self, other):
         # my_key = self.calculate_key()
         # other_key = other.calculate_key()
         if self.k1 == other.k1:
             return self.k2 < other.k2
         return self.k1 < other.k1
 
-    def __lt__(self, other):
+    def __gt__(self, other):
         if self.k1 == other.k1:
             return self.k2 > other.k2
         return self.k1 > other.k1
@@ -103,7 +104,7 @@ class Dstarlite:
 
         # D* lite parameters
         self.goal_node = None
-        self.pq = PriorityQueue()
+        self.pq = CustomPQ()
         self.unique_id = 0
         self.nodeSet = {}
         self.openSet = {}
@@ -138,7 +139,6 @@ class Dstarlite:
         self.pq.put(self.goal_node)
 
         self.compute_shortest_path()
-
         while not self.is_goal(globals()['start_node']):
             if globals()['start_node'].g == np.inf:
                 print("No solution")
@@ -258,6 +258,7 @@ class Dstarlite:
             node.rhs = rhs_min
 
         # check to see if node is contained within priority queue and remove if it is
+        
         for i in range(0, self.pq.qsize()):
             if self.pq.queue[i].get_id() == node.get_id():
                 self.pq.queue.remove(node)
