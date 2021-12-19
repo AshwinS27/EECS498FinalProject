@@ -251,3 +251,4 @@ class Astar:
 
     def get_total_distance(self):
         return self.total_distance
+

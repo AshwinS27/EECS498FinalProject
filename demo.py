@@ -11,7 +11,7 @@ def main():
     connect(use_gui=True)
 
     # Intialize the Robot
-    planner_type = 'D*'
+    planner_type = 'A*'
     robot = Robot(planner_type)
     robot.load_world('pr2doorway.json')
 
