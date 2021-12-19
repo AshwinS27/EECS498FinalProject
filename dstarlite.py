@@ -129,8 +129,8 @@ class Dstarlite:
     # returns true if key1 is lower priority than key2
     def compare_keys(self, key1, key2):
         if key1[0] == key2[0]:
-            return key1[1] > key2[1]
-        return key1[0] > key2[0]
+            return key1[1] < key2[1]
+        return key1[0] < key2[0]
 
     def run(self): #the "MAIN" from pseduocode
         ######### Intitialize parameters #############
@@ -140,6 +140,7 @@ class Dstarlite:
 
         globals()['start_node'].calculate_key()
         self.compute_shortest_path()
+        print("Computed shortest path")
         while not self.is_goal(globals()['start_node']):
             if globals()['start_node'].g == np.inf:
                 print("No solution")
@@ -232,7 +233,7 @@ class Dstarlite:
 
 
     def compute_shortest_path(self):
-        while self.pq.queue[0] < globals()['start_node'] or globals()['start_node'].get_rhs() != globals()['start_node'].get_g():
+        while self.pq.queue[0] < globals()['start_node'] or globals()['start_node'].get_rhs() > globals()['start_node'].get_g():
             key_old = [self.pq.queue[0].k1, self.pq.queue[0].k2]
             u = self.pq.get()
             if self.compare_keys(key_old, u.calculate_key()):
@@ -253,10 +254,12 @@ class Dstarlite:
     def update_node(self, node):
         if not self.is_goal(node):
             # rhs correlated to successors, therefore generate and add any new successors
-            self.generate_and_add_successors(node)
+            self.generate_and_add_successors(node, pred=True)
             rhs_min = np.inf
             for succ_id in node.successors:
-                rhs_min = min(rhs_min, dist(node.get_state(), self.nodeSet[succ_id].get_state()) + self.nodeSet[succ_id].get_g())
+                curr_min = min(rhs_min, dist(node.get_state(), self.nodeSet[succ_id].get_state()) + self.nodeSet[succ_id].get_g())
+                if (curr_min < rhs_min):
+                    rhs_min = curr_min
             node.rhs = rhs_min
 
         # check to see if node is contained within priority queue and remove if it is
@@ -295,7 +298,7 @@ class Dstarlite:
                 if pred:
                     node.add_to_pred(new_node.get_id())
                     new_node.add_to_succ(node.get_id())
-                else:
+                #else:
                     node.add_to_succ(new_node.get_id())
                     new_node.add_to_pred((new_node.get_id()))
             else:
@@ -305,7 +308,7 @@ class Dstarlite:
                     if pred:
                         node.add_to_pred(node_that_exists.get_id())
                         node_that_exists.add_to_succ(node.get_id())
-                    else:
+                    #else:
                         node_that_exists.add_to_pred(node.get_id())
                         node.add_to_succ(node_that_exists.get_id())
 
@@ -329,7 +332,7 @@ class Dstarlite:
                 if pred:
                     node.add_to_pred(new_node2.get_id())
                     new_node2.add_to_succ(node.get_id())
-                else:
+                #else:
                     node.add_to_succ(new_node2.get_id())
                     new_node2.add_to_pred(node.get_id())
             else:
@@ -339,7 +342,7 @@ class Dstarlite:
                     if not pred:
                         node.add_to_pred(node_that_exists.get_id())
                         node_that_exists.add_to_succ(node.get_id())
-                    else:
+                    #else:
                         node_that_exists.add_to_pred(node.get_id())
                         node.add_to_succ(node_that_exists.get_id())
 
@@ -364,7 +367,7 @@ class Dstarlite:
                 if pred:
                     node.add_to_pred(new_node3.get_id())
                     new_node3.add_to_succ(node.get_id())
-                else:
+                #else:
                     node.add_to_succ(new_node3.get_id())
                     new_node3.add_to_pred(node.get_id())
             else:
@@ -374,7 +377,7 @@ class Dstarlite:
                     if pred:
                         node.add_to_pred(node_that_exists.get_id())
                         node_that_exists.add_to_succ(node.get_id())
-                    else:
+                    #else:
                         node_that_exists.add_to_pred(node.get_id())
                         node.add_to_succ(node_that_exists.get_id())
 
@@ -399,7 +402,7 @@ class Dstarlite:
                 if pred:
                     node.add_to_pred(new_node4.get_id())
                     new_node4.add_to_succ(node.get_id())
-                else:
+                #else:
                     node.add_to_succ(new_node4.get_id())
                     new_node4.add_to_pred(node.get_id())
             else:
@@ -409,7 +412,7 @@ class Dstarlite:
                     if pred:
                         node_that_exists.add_to_succ(node.get_id())
                         node.add_to_pred(node_that_exists.get_id())
-                    else:
+                    #else:
                         node_that_exists.add_to_pred(node.get_id())
                         node.add_to_succ(node_that_exists.get_id())
 
@@ -436,7 +439,7 @@ class Dstarlite:
                 if pred:
                     node.add_to_pred(new_node5.get_id())
                     new_node5.add_to_succ(node.get_id())
-                else:
+                #else:
                     node.add_to_succ(new_node5.get_id())
                     new_node5.add_to_pred(node.get_id())
             else:
@@ -447,7 +450,7 @@ class Dstarlite:
                     if pred:
                         node_that_exists.add_to_succ(node.get_id())
                         node.add_to_pred(node_that_exists.get_id())
-                    else:
+                    #else:
                         node_that_exists.add_to_pred(node.get_id())
                         node.add_to_succ(node_that_exists.get_id())
 
@@ -474,7 +477,7 @@ class Dstarlite:
                 if pred:
                     node.add_to_pred(new_node6.get_id())
                     new_node6.add_to_succ(node.get_id())
-                else:
+                #else:
                     node.add_to_succ(new_node6.get_id())
                     new_node6.add_to_pred(node.get_id())
             else:
@@ -485,7 +488,7 @@ class Dstarlite:
                     if pred:
                         node_that_exists.add_to_succ(node.get_id())
                         node.add_to_pred(node_that_exists.get_id())
-                    else:
+                    #else:
                         node_that_exists.add_to_pred(node.get_id())
                         node.add_to_succ(node_that_exists.get_id())
 
