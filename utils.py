@@ -49,3 +49,9 @@ def dist(vect1, vect2):
     for num1, num2 in zip(vect1, vect2):
         distance += (num1 - num2)**2
     return np.sqrt(distance)
+
+def distNode(node1, node2):
+    if node1.isObs or node2.isObs:
+        return np.inf
+
+    return dist(node1.get_state(), node2.get_state())

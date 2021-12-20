@@ -106,7 +106,7 @@ class Astar:
             # check if goal state is reached
             if self.myrobot.is_goal_state(self.curr_state):
                 break
-        print("Total distance travelled: " + str(self.total_distance))
+        #print("Total distance travelled: " + str(self.total_distance))
         return 0
 
     def astar(self, start_state):

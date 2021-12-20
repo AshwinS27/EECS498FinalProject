@@ -13,6 +13,7 @@ class Map:
         self.resolution = resolution
         self.res_place = 1000
         self.max_range = 10
+        self.bfs_depth = 2
         self.obstacles = {}
         self.newObstacles = []
 
@@ -35,7 +36,7 @@ class Map:
                 top_pt = bq.get()
 
                 # Add children
-                if top_pt[1] < 2:
+                if top_pt[1] < self.bfs_depth:
                     r = [top_pt[0][0] + self.resolution, top_pt[0][1]]
                     if exploredSet.get(tuple(r)) is None:
                         bq.put((r, top_pt[1] + 1))

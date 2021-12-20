@@ -15,7 +15,7 @@ from lpastar import Lpastar
 class Robot:
     def __init__(self, planner_type='D*'):
         # Set all movement params
-        self.step_size = 0.4
+        self.step_size = 0.2
         self.rot_step = np.pi/2
 
         # Create map and set map resolution
@@ -46,7 +46,7 @@ class Robot:
         # Shared Algorithm Variables
         self.update_path_threshold = self.step_size * 2
         self.update_ignore_threshold = self.lidar.getRange() * 1.3
-        self.goal_threshold = 0.2
+        self.goal_threshold = self.step_size/2
 
         # Timing variables
         self.start_time = None
@@ -72,7 +72,43 @@ class Robot:
         self.start_config = tuple(get_joint_positions(robots['pr2'], self.base_joints))
         self.start_state = list(self.start_config)
 
+        # change parameters based on world and planner
+        if world_name == 'pr2doorway.json' and self.planner_type == 'A*':
+            self.step_size = 0.2
+            self.global_map.bfs_depth = 3
+            self.resolution = round(np.sqrt((self.step_size ** 2) / 2), 3)
+            self.global_map.set_resolution(self.resolution)
+        elif world_name == 'pr2bigmap.json' and self.planner_type == 'A*':
+            self.step_size = 0.3
+            self.global_map.bfs_depth = 1
+            self.resolution = round(np.sqrt((self.step_size ** 2) / 2), 3)
+            self.global_map.set_resolution(self.resolution)
+        elif world_name == 'pr2doorway.json' and self.planner_type == 'D*':
+            self.step_size = 0.3
+            self.global_map.bfs_depth = 2
+            self.resolution = round(np.sqrt((self.step_size ** 2) / 2), 3)
+            self.global_map.set_resolution(self.resolution)
+            self.goal_threshold = self.step_size / 4
+            self.planner.edge_check_depth = 1
+        elif world_name == 'pr2bigmap.json' and self.planner_type == 'D*':
+            self.step_size = 0.45
+            self.global_map.bfs_depth = 1
+            self.resolution = round(np.sqrt((self.step_size ** 2) / 2), 3)#- self.step_size/16
+            self.global_map.set_resolution(self.resolution)
+            self.goal_threshold = self.step_size / 4
+            self.planner.edge_check_depth = 0
+
+        if self.planner_type == 'D*':
+            # need to discretize start_state and move robot to start there
+            new_start_state = self.global_map.roundPointToCell(self.start_state)
+            self.move_in_path([self.start_state, new_start_state], 0)
+            self.start_state = new_start_state
+
+
+
         self.planner.set_start_state(self.start_state)
+
+
 
     # Returns 1 if end of path is reached or path is empty
     # Returns 0 for successfully incrementing along path
@@ -188,7 +224,7 @@ class Robot:
     # Sets goal configuration from tuple
     def set_goal_config(self, goal_config):
         self.goal_config = goal_config
-        self.goal_state = list(goal_config)
+        self.goal_state = self.global_map.roundPointToCell(list(goal_config))
         self.planner.updateGoal()
 
 
