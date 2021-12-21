@@ -85,6 +85,7 @@ class Astar:
             new_obs_points = self.myrobot.update_map(self.curr_state)
             if self.debug:
                 obstacle_marker_ids.extend(plot_points(new_obs_points))
+                self.myrobot.obs_marker_ids = obstacle_marker_ids
 
             # check for obstacles obstructing path
             if self.myrobot.does_conflict_with_path(new_obs_points, curr_path, curr_path_idx):
@@ -96,6 +97,7 @@ class Astar:
                 curr_path_idx = 0
                 if self.debug:
                     path_marker_ids = plot_points(curr_path, color=(0, 1, 0, 1))
+                    self.myrobot.path_marker_ids = path_marker_ids
 
             # move in path
             self.myrobot.move_in_path(curr_path, curr_path_idx)

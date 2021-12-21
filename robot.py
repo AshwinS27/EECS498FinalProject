@@ -6,6 +6,7 @@ from pybullet_tools.pr2_utils import PR2_GROUPS
 from utils import load_env, execute_trajectory, draw_sphere_marker, dist
 from plot_utils import plot_points
 import time
+import pybullet as p
 
 # Importing planners
 from a_star import Astar
@@ -38,6 +39,9 @@ class Robot:
         self.robots = None
         self.base_joints = None
 
+        self.obs_marker_ids = []
+        self.path_marker_ids = []
+
         ## Planner variables
         self.planner_type = planner_type
         self.planner = None
@@ -45,7 +49,7 @@ class Robot:
 
         # Shared Algorithm Variables
         self.update_path_threshold = self.step_size * 2
-        self.update_ignore_threshold = self.lidar.getRange() * 1.3
+        self.update_ignore_threshold = self.lidar.getRange() * 100
         self.goal_threshold = self.step_size/2
 
         # Timing variables
@@ -78,18 +82,21 @@ class Robot:
             self.global_map.bfs_depth = 3
             self.resolution = round(np.sqrt((self.step_size ** 2) / 2), 3)
             self.global_map.set_resolution(self.resolution)
+            self.goal_threshold = self.step_size / 2
         elif world_name == 'pr2bigmap.json' and self.planner_type == 'A*':
             self.step_size = 0.3
             self.global_map.bfs_depth = 1
             self.resolution = round(np.sqrt((self.step_size ** 2) / 2), 3)
             self.global_map.set_resolution(self.resolution)
+            self.goal_threshold = self.step_size / 2
         elif world_name == 'pr2doorway.json' and self.planner_type == 'D*':
             self.step_size = 0.3
-            self.global_map.bfs_depth = 2
             self.resolution = round(np.sqrt((self.step_size ** 2) / 2), 3)
             self.global_map.set_resolution(self.resolution)
             self.goal_threshold = self.step_size / 4
             self.planner.edge_check_depth = 1
+            self.global_map.bfs_depth = 2
+            self.goal_threshold = self.step_size / 2
         elif world_name == 'pr2bigmap.json' and self.planner_type == 'D*':
             self.step_size = 0.45
             self.global_map.bfs_depth = 1
@@ -97,6 +104,7 @@ class Robot:
             self.global_map.set_resolution(self.resolution)
             self.goal_threshold = self.step_size / 4
             self.planner.edge_check_depth = 0
+            self.goal_threshold = self.step_size / 2
 
         if self.planner_type == 'D*':
             # need to discretize start_state and move robot to start there
@@ -249,6 +257,18 @@ class Robot:
         new_obs_points = self.global_map.getNewPoints()
 
         return new_obs_points
+
+    def delete_map_and_robot(self):
+        for obs_id in self.obstacles:
+            p.removeBody(self.obstacles[obs_id])
+        for rob_id in self.robots:
+            p.removeBody(self.robots[rob_id])
+        for obs_id in self.obs_marker_ids:
+            p.removeBody(obs_id)
+        for path_id in self.path_marker_ids:
+            p.removeBody(path_id)
+
+
 
     # Given a list of obstacle points,
     def does_conflict_with_path(self, obs_points, path, path_idx=0):

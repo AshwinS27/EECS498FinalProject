@@ -161,7 +161,14 @@ class Dstarlite:
         self.goal_node.calculate_key()
         self.pq.put(self.goal_node)
 
+
         self.compute_shortest_path()
+        path = []
+        path_idx = 0
+        if self.debug:
+            path = self.generate_path()
+            path_marker_ids = plot_points(path, color=(0, 1, 0, 1))
+
         while not self.is_goal(globals()['start_node']):
             if globals()['start_node'].g == np.inf:
                 print("No solution")
@@ -192,6 +199,9 @@ class Dstarlite:
             if self.debug:
                 obs_marker_ids.extend(plot_points(new_obs_points))
 
+            redrawPath = False
+            if self.debug and self.myrobot.does_conflict_with_path(new_obs_points, path, path_idx):
+                redrawPath = True
 
             hasUpdatedKm = False
             generateNewPath = False
@@ -266,11 +276,14 @@ class Dstarlite:
 
             if generateNewPath:
                 self.compute_shortest_path()
-                if self.debug:
-                    # remove previous path and generate new one
+                if redrawPath:
                     destroy_points(path_marker_ids)
                     path_marker_ids.clear()
-                    path_marker_ids = plot_points(self.generate_path(), color=(0, 1, 0, 1))
+                    path = self.generate_path()
+                    path_marker_ids = plot_points(path, color=(0, 1, 0, 1))
+                    path_idx = 0
+
+
             ##### END OF COMPUTING CHANGES IN EDGE COSTS
         ########### END OF START TO GOAL WHILE
 
